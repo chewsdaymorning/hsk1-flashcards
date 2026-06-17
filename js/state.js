@@ -11,6 +11,8 @@ const state = {
   onionOpacity: 0.35,
   onionOn: true,
   loop: true,
+  background: 'camera', // 'camera' | 'white' | 'black'
+  stickers: [],         // [{ id, emoji, x, y, size, rotation }] — positions are 0..1 fractions of the stage
   persistent: false,
 };
 
@@ -49,6 +51,7 @@ async function persistMeta() {
     await db.setMeta('settings', {
       aspect: state.aspect, fps: state.fps,
       onionOpacity: state.onionOpacity, onionOn: state.onionOn, loop: state.loop,
+      background: state.background, stickers: state.stickers,
     });
   } catch { /* ignore */ }
 }
@@ -169,3 +172,40 @@ export function setFps(fps) { state.fps = fps; persistMeta(); }
 export function setOnionOpacity(v) { state.onionOpacity = v; persistMeta(); }
 export function setOnionOn(v) { state.onionOn = v; persistMeta(); emit(); }
 export function setLoop(v) { state.loop = v; persistMeta(); }
+
+// --- stickers ---------------------------------------------------------------
+
+export function setBackground(v) { state.background = v; persistMeta(); emit(); }
+
+export function addSticker({ emoji }) {
+  const s = { id: uid(), emoji, x: 0.5, y: 0.5, size: 0.22, rotation: 0 };
+  state.stickers.push(s);
+  persistMeta();
+  emit();
+  return s;
+}
+
+// Patch a sticker. Pass { silent: true } to skip the re-render/emit — used during
+// drag where the DOM is already being updated directly for smoothness.
+export function updateSticker(id, patch, { silent = false } = {}) {
+  const s = state.stickers.find((x) => x.id === id);
+  if (!s) return;
+  Object.assign(s, patch);
+  persistMeta();
+  if (!silent) emit();
+}
+
+export function removeSticker(id) {
+  const i = state.stickers.findIndex((x) => x.id === id);
+  if (i < 0) return;
+  state.stickers.splice(i, 1);
+  persistMeta();
+  emit();
+}
+
+export function clearStickers() {
+  if (!state.stickers.length) return;
+  state.stickers = [];
+  persistMeta();
+  emit();
+}

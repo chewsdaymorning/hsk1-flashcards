@@ -398,6 +398,100 @@ input[type="range"]::-moz-range-thumb {
 }
 @keyframes toastIn { from { opacity: 0; transform: translate(-50%, 10px); } to { opacity: 1; transform: translate(-50%, 0); } }
 
+/* ---------- Background modes ---------- */
+.backdrop {
+  position: absolute;
+  inset: 0;
+  background: transparent;
+}
+.stage.bg-white .backdrop { background: #fff; }
+.stage.bg-black .backdrop { background: #000; }
+/* Hide the live feed when a plain backdrop is selected. */
+.stage.bg-white video,
+.stage.bg-black video { visibility: hidden; }
+
+/* ---------- Stickers ---------- */
+.sticker-layer {
+  position: absolute;
+  inset: 0;
+  z-index: 5;
+  pointer-events: none;
+  overflow: hidden;
+}
+.sticker {
+  position: absolute;
+  pointer-events: auto;
+  touch-action: none;
+  user-select: none;
+  line-height: 1;
+}
+.sticker-emoji {
+  display: block;
+  line-height: 1;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+  -webkit-user-select: none;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+}
+.sticker.selected { outline: 2px dashed rgba(79, 140, 255, .9); outline-offset: 4px; }
+
+.sticker-del,
+.sticker-handle {
+  position: absolute;
+  width: 24px; height: 24px;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: 2px solid #fff;
+  font-size: 13px;
+  line-height: 1;
+  cursor: pointer;
+  touch-action: none;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, .5);
+  padding: 0;
+}
+.sticker.selected .sticker-del,
+.sticker.selected .sticker-handle { display: flex; }
+
+.sticker-del { top: -12px; right: -12px; background: var(--accent); color: #fff; }
+.sticker-handle.rotate { top: -12px; left: -12px; background: var(--primary); color: #fff; cursor: grab; }
+.sticker-handle.resize { bottom: -12px; right: -12px; background: var(--accent-2); color: #1b1b1b; cursor: nwse-resize; }
+
+/* ---------- Sticker bar + tray ---------- */
+.sticker-bar {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 12px;
+}
+.sticker-tray {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-top: 10px;
+  padding: 10px;
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 12px;
+}
+.sticker-pick {
+  width: 44px; height: 44px;
+  font-size: 24px;
+  line-height: 1;
+  background: var(--panel-2);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform .08s ease, background .15s;
+}
+.sticker-pick:hover { background: #2a2f3b; }
+.sticker-pick:active { transform: scale(.9); }
+
 @media (min-width: 600px) {
   .stage { max-width: 420px; }
 }

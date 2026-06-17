@@ -3,12 +3,14 @@ import {
   init, onChange, getState,
   addFrame, clearFrames,
   setAspect, setFps, setOnionOpacity, setOnionOn, setLoop,
+  setBackground, clearStickers,
 } from './state.js';
 import { startCamera, flipCamera, capture, isActive } from './camera.js';
 import { setupFilmstrip } from './filmstrip.js';
 import { setupEditor } from './editor.js';
 import { setupPlayer } from './playback.js';
 import { setupExporter } from './exporter.js';
+import { setupStickers } from './stickers.js';
 import { $, toast } from './util.js';
 
 const video = $('#video');
@@ -19,6 +21,7 @@ const editor = setupEditor();
 const player = setupPlayer();
 const exporter = setupExporter();
 const filmstrip = setupFilmstrip($('#filmstrip'), { onEdit: (id) => editor.open(id) });
+const stickers = setupStickers(stage, $('#stickerLayer'), $('#stickerTray'));
 
 // ---------- camera ----------
 async function initCamera() {
@@ -36,9 +39,14 @@ function showCamError(msg) {
 }
 
 async function doCapture() {
-  if (!isActive()) { toast('Camera not ready'); return; }
+  const s = getState();
+  if (s.background === 'camera' && !isActive()) { toast('Camera not ready'); return; }
   try {
-    const blob = await capture(video, getState().aspect);
+    const blob = await capture(video, {
+      aspect: s.aspect,
+      background: s.background,
+      stickers: s.stickers,
+    });
     flash();
     addFrame({ originalBlob: blob, renderBlob: blob });
     // Scroll filmstrip to the newest frame.
@@ -66,6 +74,14 @@ $('#flipBtn').addEventListener('click', async () => {
 $('#retryCamera').addEventListener('click', initCamera);
 
 $('#aspectSelect').addEventListener('change', (e) => setAspect(e.target.value));
+$('#bgSelect').addEventListener('change', (e) => setBackground(e.target.value));
+
+$('#stickerBtn').addEventListener('click', () => {
+  $('#stickerTray').classList.toggle('hidden');
+});
+$('#clearStickersBtn').addEventListener('click', () => {
+  if (getState().stickers.length) clearStickers();
+});
 
 $('#onionToggle').addEventListener('click', () => setOnionOn(!getState().onionOn));
 $('#onionOpacity').addEventListener('input', (e) => {
@@ -131,15 +147,21 @@ function syncUI() {
   filmstrip.render();
   $('#frameCount').textContent = String(s.frames.length);
   stage.style.setProperty('--ar', s.aspect.replace(':', '/'));
+  stage.classList.toggle('bg-camera', s.background === 'camera');
+  stage.classList.toggle('bg-white', s.background === 'white');
+  stage.classList.toggle('bg-black', s.background === 'black');
   $('#onionToggle').classList.toggle('active', s.onionOn);
   $('#playBtn').disabled = !s.frames.length;
   $('#exportBtn').disabled = !s.frames.length;
+  $('#clearStickersBtn').classList.toggle('hidden', !s.stickers.length);
+  stickers.render();
   applyOnion();
 }
 
 function primeControlsFromState() {
   const s = getState();
   $('#aspectSelect').value = s.aspect;
+  $('#bgSelect').value = s.background;
   $('#fps').value = s.fps;
   $('#fpsVal').textContent = s.fps + ' fps';
   $('#onionOpacity').value = Math.round(s.onionOpacity * 100);

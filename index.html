@@ -22,15 +22,25 @@
           <option value="3:4">3:4 Tall</option>
         </select>
       </label>
+      <label class="field">
+        <span>Background</span>
+        <select id="bgSelect" title="Background">
+          <option value="camera" selected>Camera</option>
+          <option value="white">White</option>
+          <option value="black">Black</option>
+        </select>
+      </label>
     </div>
   </header>
 
   <main>
     <!-- CAMERA -->
     <section class="camera-section">
-      <div id="stage" class="stage">
+      <div id="stage" class="stage bg-camera">
+        <div id="backdrop" class="backdrop"></div>
         <video id="video" playsinline autoplay muted></video>
         <img id="onion" class="onion" alt="" />
+        <div id="stickerLayer" class="sticker-layer"></div>
         <div id="cameraError" class="camera-error hidden">
           <p>📷 Camera unavailable.</p>
           <p class="muted" id="cameraErrorMsg"></p>
@@ -48,6 +58,12 @@
 
         <button id="onionToggle" class="btn icon-btn active" title="Toggle onion skin">👻</button>
       </div>
+
+      <div class="sticker-bar">
+        <button id="stickerBtn" class="btn btn-ghost small" title="Add a sticker">🌟 Stickers</button>
+        <button id="clearStickersBtn" class="btn btn-ghost small hidden" title="Remove all stickers">Clear stickers</button>
+      </div>
+      <div id="stickerTray" class="sticker-tray hidden"></div>
 
       <div class="onion-row">
         <label class="slider-label" for="onionOpacity">Onion skin</label>

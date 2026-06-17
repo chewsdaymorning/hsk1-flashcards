@@ -10,6 +10,13 @@ choose.
 - **Capture** frames directly from your device camera (front/back toggle).
 - **Aspect ratio** picker — 1:1, 4:5, 9:16, 16:9, 4:3, 3:4. Frames are
   center-cropped to match.
+- **Background** picker — shoot against the live **Camera**, or swap to a plain
+  **White** or **Black** backdrop. Perfect for cut-out / sticker animation and
+  for keying the subject out cleanly afterwards.
+- **Stickers** — tap 🌟 Stickers to drop emoji onto the scene, then drag to
+  move, use the corner handles to resize and rotate, and ✕ to delete. Stickers
+  are baked into every captured frame, so you can reposition them between shots
+  for cut-out style animation.
 - **Onion skin** — the previous frame is overlaid on the live camera at an
   adjustable opacity so you can align your next shot.
 - **Filmstrip** of every frame with:
