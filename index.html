@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#F0EEE6" />
+  <title>Stop Motion Studio</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">🎬 Stop&nbsp;Motion&nbsp;Studio</h1>
+    <div class="topbar-controls">
+      <label class="field">
+        <span>Aspect</span>
+        <select id="aspectSelect" title="Aspect ratio">
+          <option value="1:1">1:1 Square</option>
+          <option value="4:5">4:5 Portrait</option>
+          <option value="9:16" selected>9:16 Vertical</option>
+          <option value="16:9">16:9 Wide</option>
+          <option value="4:3">4:3 Classic</option>
+          <option value="3:4">3:4 Tall</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>Background</span>
+        <select id="bgSelect" title="Background">
+          <option value="camera" selected>Camera</option>
+          <option value="white">White</option>
+          <option value="black">Black</option>
+        </select>
+      </label>
+    </div>
+  </header>
+
+  <main>
+    <!-- CAMERA -->
+    <section class="camera-section">
+      <div id="stage" class="stage bg-camera">
+        <div id="backdrop" class="backdrop"></div>
+        <video id="video" playsinline autoplay muted></video>
+        <img id="onion" class="onion" alt="" />
+        <div id="stickerLayer" class="sticker-layer"></div>
+        <div id="cameraError" class="camera-error hidden">
+          <p>📷 Camera unavailable.</p>
+          <p class="muted" id="cameraErrorMsg"></p>
+          <button id="retryCamera" class="btn">Retry</button>
+        </div>
+        <div id="flash" class="flash"></div>
+      </div>
+
+      <div class="camera-tools">
+        <button id="flipBtn" class="btn icon-btn" title="Switch camera">🔄</button>
+
+        <button id="captureBtn" class="capture-btn" title="Capture frame (Space)">
+          <span class="capture-ring"></span>
+        </button>
+
+        <button id="onionToggle" class="btn icon-btn active" title="Toggle onion skin">👻</button>
+      </div>
+
+      <div class="sticker-bar">
+        <button id="stickerBtn" class="btn btn-ghost small" title="Add a sticker">🌟 Stickers</button>
+        <button id="clearStickersBtn" class="btn btn-ghost small hidden" title="Remove all stickers">Clear stickers</button>
+      </div>
+      <div id="stickerTray" class="sticker-tray hidden"></div>
+
+      <div class="onion-row">
+        <label class="slider-label" for="onionOpacity">Onion skin</label>
+        <input type="range" id="onionOpacity" min="0" max="80" value="35" />
+        <span id="onionVal" class="slider-val">35%</span>
+      </div>
+    </section>
+
+    <!-- FILMSTRIP -->
+    <section class="filmstrip-section">
+      <div class="section-head">
+        <h2>Frames <span id="frameCount" class="pill">0</span></h2>
+        <button id="clearAll" class="btn btn-ghost small">Clear all</button>
+      </div>
+      <div id="filmstrip" class="filmstrip">
+        <p id="emptyHint" class="empty-hint">No frames yet — tap the shutter to capture your first one. Drag frames to reorder.</p>
+      </div>
+    </section>
+
+    <!-- PLAYBACK / SPEED -->
+    <section class="playback-section">
+      <div class="section-head">
+        <h2>Playback</h2>
+      </div>
+      <div class="speed-row">
+        <label class="slider-label" for="fps">Speed</label>
+        <input type="range" id="fps" min="1" max="30" value="8" />
+        <span id="fpsVal" class="slider-val">8 fps</span>
+      </div>
+      <div class="playback-controls">
+        <button id="playBtn" class="btn btn-primary">▶ Play preview</button>
+        <label class="checkbox">
+          <input type="checkbox" id="loopChk" checked /> Loop
+        </label>
+        <button id="exportBtn" class="btn btn-accent">⬇ Export video</button>
+      </div>
+    </section>
+  </main>
+
+  <!-- PLAYBACK MODAL -->
+  <div id="playerModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Preview</h3>
+        <button class="btn btn-ghost close-btn" data-close="playerModal">✕</button>
+      </div>
+      <canvas id="playerCanvas" class="player-canvas"></canvas>
+      <div class="modal-actions">
+        <button id="playerToggle" class="btn btn-primary">⏸ Pause</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EDITOR MODAL -->
+  <div id="editorModal" class="modal hidden">
+    <div class="modal-card editor-card">
+      <div class="modal-head">
+        <h3>Edit frame</h3>
+        <button class="btn btn-ghost close-btn" data-close="editorModal">✕</button>
+      </div>
+      <div id="editorStage" class="editor-stage">
+        <canvas id="editorCanvas" class="editor-canvas"></canvas>
+        <div id="cropBox" class="crop-box">
+          <span class="handle nw" data-h="nw"></span>
+          <span class="handle ne" data-h="ne"></span>
+          <span class="handle sw" data-h="sw"></span>
+          <span class="handle se" data-h="se"></span>
+        </div>
+      </div>
+      <div class="editor-tools">
+        <button id="rotLeft" class="btn">⟲ Rotate</button>
+        <button id="rotRight" class="btn">⟳ Rotate</button>
+        <button id="cropReset" class="btn btn-ghost">Reset crop</button>
+      </div>
+      <div class="modal-actions">
+        <button id="editorCancel" class="btn btn-ghost" data-close="editorModal">Cancel</button>
+        <button id="editorApply" class="btn btn-primary">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- EXPORT PROGRESS -->
+  <div id="exportModal" class="modal hidden">
+    <div class="modal-card">
+      <div class="modal-head">
+        <h3>Exporting video</h3>
+        <button class="btn btn-ghost close-btn" data-close="exportModal">✕</button>
+      </div>
+      <div class="export-body">
+        <div class="progress"><div id="exportBar" class="progress-bar"></div></div>
+        <p id="exportStatus" class="muted">Preparing…</p>
+        <div id="exportResult" class="hidden">
+          <video id="resultVideo" class="result-video" controls playsinline></video>
+          <a id="downloadLink" class="btn btn-accent" download>⬇ Download video</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
