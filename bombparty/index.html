@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#F0EEE6" />
+  <title>Bomb Party — Solo</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>💣</text></svg>" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="topbar">
+    <h1 class="brand">💣 Bomb&nbsp;Party</h1>
+    <div class="topbar-best muted" id="topBest"></div>
+  </header>
+
+  <main>
+    <!-- LOADING -->
+    <section id="loadingScreen" class="card center">
+      <div class="bomb-idle">💣</div>
+      <p class="muted">Loading dictionary…</p>
+    </section>
+
+    <!-- ERROR -->
+    <section id="errorScreen" class="card center hidden">
+      <div class="bomb-idle">🧨</div>
+      <p>Couldn't load the dictionary.</p>
+      <p class="muted" id="errorDetail"></p>
+      <button class="btn primary" id="retryBtn">Retry</button>
+    </section>
+
+    <!-- MENU -->
+    <section id="menuScreen" class="card hidden">
+      <h2 class="menu-title">Solo survival</h2>
+      <p class="menu-blurb muted">
+        A syllable appears and the fuse is lit. Type any English word containing
+        it before the bomb explodes — the fuse length is a secret. Words can't
+        be reused. You have <strong>2 lives</strong>; use every letter of the
+        alphabet to earn one back (up to 3).
+      </p>
+
+      <div class="field-label">Difficulty</div>
+      <div class="seg" id="difficultySeg" role="radiogroup" aria-label="Difficulty"></div>
+      <p class="diff-hint muted" id="diffHint"></p>
+
+      <button class="btn primary big" id="startBtn">Light the fuse</button>
+      <p class="best-line muted" id="menuBest"></p>
+    </section>
+
+    <!-- GAME -->
+    <section id="gameScreen" class="hidden">
+      <div class="hud">
+        <div class="hearts" id="hearts" aria-label="Lives"></div>
+        <div class="hud-score"><span id="score">0</span><span class="muted"> words</span></div>
+      </div>
+
+      <div class="bomb-stage card" id="bombStage">
+        <div class="bomb" id="bomb">💣</div>
+        <div class="prompt" id="prompt" aria-live="polite"></div>
+        <div class="prompt-sub muted">type a word containing this</div>
+      </div>
+
+      <form id="answerForm" autocomplete="off">
+        <input
+          id="answerInput"
+          type="text"
+          inputmode="latin"
+          autocomplete="off"
+          autocorrect="off"
+          autocapitalize="off"
+          spellcheck="false"
+          placeholder="type a word…"
+          aria-label="Your word"
+        />
+        <button type="submit" class="btn primary">Go</button>
+      </form>
+
+      <div class="feedback" id="feedback" aria-live="polite">&nbsp;</div>
+
+      <div class="alphabet" id="alphabet" aria-label="Letters used — complete the alphabet for an extra life"></div>
+    </section>
+
+    <!-- GAME OVER -->
+    <section id="overScreen" class="card center hidden">
+      <div class="boom">💥</div>
+      <h2>Game over</h2>
+      <p class="over-score"><span id="overScore"></span> <span class="muted">words survived</span></p>
+      <p class="over-best" id="overBest"></p>
+      <p class="over-hint muted" id="overHint"></p>
+      <div class="btn-row">
+        <button class="btn primary" id="againBtn">Play again</button>
+        <button class="btn" id="menuBtn">Change difficulty</button>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer muted">
+    Dictionary: 274k English words (SCOWL). Also on this site:
+    <a href="../">🎬 Stop Motion Studio</a>
+  </footer>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>
