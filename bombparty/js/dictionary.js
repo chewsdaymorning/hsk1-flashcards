@@ -7,11 +7,17 @@
 
 export const THRESHOLDS = { easy: 800, medium: 250, hard: 80 };
 
-export async function loadDictionary(url = 'words.txt') {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`HTTP ${res.status} fetching ${url}`);
-  const text = await res.text();
+// words.txt: common English words — drives prompts, hints, and validation.
+// names.txt: well-known proper nouns (cities, countries, demonyms, first
+// names) — accepted as answers only, so they never make prompts harder or
+// show up as hints.
+export async function loadDictionary(wordsUrl = 'words.txt', namesUrl = 'names.txt') {
+  const [wordsRes, namesRes] = await Promise.all([fetch(wordsUrl), fetch(namesUrl)]);
+  if (!wordsRes.ok) throw new Error(`HTTP ${wordsRes.status} fetching ${wordsUrl}`);
+  if (!namesRes.ok) throw new Error(`HTTP ${namesRes.status} fetching ${namesUrl}`);
+  const [text, namesText] = await Promise.all([wordsRes.text(), namesRes.text()]);
   const list = text.split('\n').map((w) => w.trim()).filter(Boolean);
+  const names = namesText.split('\n').map((w) => w.trim()).filter(Boolean);
 
   const counts = new Map();
   for (const word of list) {
@@ -31,7 +37,9 @@ export async function loadDictionary(url = 'words.txt') {
     }
   }
 
-  return { words: new Set(list), list, pools };
+  const words = new Set(list);
+  for (const name of names) words.add(name);
+  return { words, list, pools };
 }
 
 // Up to `limit` of the shortest unused words containing `prompt` — shown on
