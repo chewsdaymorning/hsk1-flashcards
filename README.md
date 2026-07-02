@@ -1,5 +1,12 @@
 # 🎬 Stop Motion Studio
 
+> **Also on this site:** 💣 **[Bomb Party](bombparty/)** — a solo survival word
+> game. A 2–3 letter syllable appears and a hidden fuse starts burning: type any
+> English word containing it before the bomb explodes. No word reuse, 2 lives,
+> use all 26 letters to win one back, three difficulty levels. Static like the
+> rest of the site — dictionary (274k words, SCOWL) is bundled, no server needed.
+> Lives in [`bombparty/`](bombparty/) with its own HTML/CSS/JS modules.
+
 A no-install, browser-based stop motion camera. Shoot frames with your phone or
 laptop camera, line up each shot against the previous one with onion skinning,
 edit and reorder frames, then stitch everything into a video at the speed you
