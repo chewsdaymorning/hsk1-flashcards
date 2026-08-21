@@ -93,6 +93,27 @@ class SearchConfig:
     verify_links: bool = True
     max_link_checks: int = 30
 
+    # --- Alternative discovery sources ------------------------------------
+    # E-mail alerts: the portals' own Suchagent mails, read via IMAP.  The
+    # password is never stored here - only the NAME of the environment
+    # variable that holds it.
+    imap_host: str = ""
+    imap_port: int = 993
+    imap_user: str = ""
+    imap_password_env: str = "WOHNUNGSSUCHE_IMAP_PASSWORD"
+    imap_folder: str = "INBOX"
+    imap_since_days: int = 3
+    imap_sender_filters: List[str] = field(
+        default_factory=lambda: [
+            "immobilienscout24.de",
+            "immowelt.de",
+            "kleinanzeigen.de",
+        ]
+    )
+    # Fredy (github.com/orangecoding/fredy) import: path to Fredy's listings
+    # storage on this machine; empty = disabled.
+    fredy_db_path: str = ""
+
     # --- Politeness -------------------------------------------------------
     request_delay_seconds: float = 4.0
     request_timeout_seconds: float = 30.0
