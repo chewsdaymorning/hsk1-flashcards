@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Wohnungssuche Wiesbaden – {{ date }}</title>
+  <link rel="stylesheet" href="static/style.css">
+</head>
+<body>
+<div class="container">
+
+  <header class="header">
+    <h1>🏠 Wohnungssuche {{ config.city }}</h1>
+    <p class="subtitle">
+      Report vom {{ generated_at }} · Umkreis {{ config.max_distance_km|num }} km ·
+      ab {{ config.min_rooms|num }} Zimmer · ab {{ config.min_area_sqm|num }} m² ·
+      max. {{ config.max_warm_rent_eur|eur }} warm
+    </p>
+    <p class="subtitle">
+      Ausgeschlossen: {{ config.excluded_districts|join(', ') }} · keine WG, keine Zwischenmiete
+    </p>
+  </header>
+
+  <section class="stats" aria-label="Zusammenfassung">
+    <div class="stat">
+      <div class="stat-value">{{ matches|length }}</div>
+      <div class="stat-label">Passende Wohnungen</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ non_matches|length }}</div>
+      <div class="stat-label">Nicht passend</div>
+    </div>
+    <div class="stat stat--warn">
+      <div class="stat-value">{{ flagged|length }}</div>
+      <div class="stat-label">Scam-Verdacht</div>
+    </div>
+    <div class="stat">
+      <div class="stat-value">{{ new_hashes|length }}</div>
+      <div class="stat-label">Neu seit letztem Lauf</div>
+    </div>
+  </section>
+
+  <div class="notice notice--important">
+    ⚠️ <strong>Keine automatische Kontaktaufnahme.</strong>
+    Dieses Tool verschickt nichts. Jede Anfrage schreibst du selbst, nachdem du sie
+    in der Approval-Queue freigegeben hast. Vor jeder Zusage: <strong>Wohnung live besichtigen</strong>,
+    niemals Geld vor der Besichtigung überweisen.
+  </div>
+
+  {% if platform_status %}
+  <section class="platforms" aria-label="Plattform-Status">
+    {% for status in platform_status %}
+    <span class="platform {{ 'platform--ok' if status.success else 'platform--fail' }}">
+      {{ status.platform }}: {{ status.listings_found }} Treffer
+      {% if status.message %}<span class="platform-message">({{ status.message }})</span>{% endif %}
+    </span>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <h2 class="section-title">🎯 Passende Wohnungen ({{ matches|length }})</h2>
+  {% if not matches %}
+    <p class="empty">Heute keine Wohnung, die alle Kriterien erfüllt.</p>
+  {% endif %}
+
+  {% for listing in matches %}
+  <article class="card">
+    <div class="card-inner">
+
+      <div class="card-header">
+        <div class="card-heading">
+          <h3>
+            #{{ loop.index }} {{ listing.title }}
+            {% if listing.unique_hash in new_hashes %}<span class="badge badge--new">NEU</span>{% endif %}
+          </h3>
+          <p class="address">
+            📍 {{ listing.address or 'Adresse nicht angegeben' }}
+            {% if listing.district and listing.district not in listing.address %} · {{ listing.district }}{% endif %}
+          </p>
+        </div>
+        <div class="price">
+          <div class="price-value">{{ listing.warm_rent|eur }}</div>
+          <div class="price-label">
+            warm{% if listing.warm_rent_is_estimated %} (geschätzt){% endif %}
+          </div>
+        </div>
+      </div>
+
+      <div class="metrics">
+        <div class="metric">
+          <div class="metric-value">{{ listing.rooms|num }}</div>
+          <div class="metric-label">Zimmer</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">{{ listing.area_sqm|num }} m²</div>
+          <div class="metric-label">Fläche</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">
+            {% if listing.distance_to_center_km is not none %}{{ listing.distance_to_center_km|num }} km{% else %}?{% endif %}
+          </div>
+          <div class="metric-label">Zentrum</div>
+        </div>
+        <div class="metric">
+          <div class="metric-value">{{ listing.price_per_sqm|num }} €</div>
+          <div class="metric-label">pro m²</div>
+        </div>
+      </div>
+
+      {% if listing.image_urls %}
+      <div class="card-image">
+        <img src="{{ listing.image_urls[0] }}" alt="Foto: {{ listing.title }}"
+             loading="lazy" referrerpolicy="no-referrer">
+      </div>
+      {% else %}
+      <div class="card-image is-missing">📷 Kein Bild im Inserat</div>
+      {% endif %}
+
+      <div class="badges">
+        <span class="badge badge--platform">{{ listing.platform }}</span>
+        {% if listing.has_parking %}<span class="badge badge--good">🅿️ Stellplatz</span>{% endif %}
+        {% if listing.has_ebk %}<span class="badge badge--good">🍳 EBK</span>{% endif %}
+        {% if listing.has_balcony %}<span class="badge">🌿 Balkon/Terrasse</span>{% endif %}
+        {% if listing.has_garden %}<span class="badge">🌳 Garten</span>{% endif %}
+        {% if listing.has_elevator %}<span class="badge">🛗 Aufzug</span>{% endif %}
+        {% if listing.is_private %}<span class="badge">👤 Privatanbieter</span>{% endif %}
+        {% if listing.cold_rent %}<span class="badge">Kalt {{ listing.cold_rent|eur }}</span>{% endif %}
+        {% if listing.deposit %}<span class="badge">Kaution {{ listing.deposit|eur }}</span>{% endif %}
+      </div>
+
+      {% set notes = warnings.get(listing.unique_hash, []) %}
+      {% if notes %}
+      <ul class="notes">
+        {% for note in notes %}<li>{{ note }}</li>{% endfor %}
+      </ul>
+      {% endif %}
+
+      <div class="actions">
+        <a class="btn btn--primary" href="{{ listing.url }}" target="_blank" rel="noopener noreferrer">
+          🔗 Zum Inserat auf {{ listing.platform }}
+        </a>
+        <button class="btn btn--disabled" type="button" disabled
+                title="Nur nach deiner Freigabe – dieses Tool verschickt nichts">
+          ✉️ Anfrage senden (Approval erforderlich)
+        </button>
+      </div>
+
+    </div>
+  </article>
+  {% endfor %}
+
+  {% if flagged %}
+  <h2 class="section-title section-title--warn">🚨 Scam-Verdacht ({{ flagged|length }})</h2>
+  <div class="notice">
+    Diese Inserate zeigen typische Betrugsmuster. Nicht antworten, keine Daten senden,
+    kein Geld überweisen. Auf der Plattform melden.
+  </div>
+  {% for listing in flagged %}
+  <article class="card card--scam">
+    <div class="card-inner">
+      <h3>{{ listing.title }}</h3>
+      <p class="address">📍 {{ listing.address or 'Adresse nicht angegeben' }} ·
+        {{ listing.rooms|num }} Zi. · {{ listing.area_sqm|num }} m² · {{ listing.warm_rent|eur }}</p>
+      <ul class="reasons">
+        {% for reason in listing.scam_reasons %}
+        <li class="reason reason--scam">{{ scam_labels.get(reason, reason) }}</li>
+        {% endfor %}
+      </ul>
+      <div class="actions">
+        <a class="btn btn--ghost" href="{{ listing.url }}" target="_blank" rel="noopener noreferrer">
+          Inserat ansehen (Vorsicht)
+        </a>
+      </div>
+    </div>
+  </article>
+  {% endfor %}
+  {% endif %}
+
+  {% if non_matches %}
+  <h2 class="section-title">📋 Nicht passend ({{ non_matches|length }})</h2>
+  <details class="details">
+    <summary>Ausgeschlossene Inserate mit Begründung anzeigen</summary>
+    <table class="table">
+      <thead>
+        <tr>
+          <th>Inserat</th><th>Zi.</th><th>Fläche</th><th>Warm</th><th>Grund</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for listing in non_matches %}
+        <tr>
+          <td>
+            <a href="{{ listing.url }}" target="_blank" rel="noopener noreferrer">{{ listing.title }}</a>
+            <div class="muted">{{ listing.platform }}{% if listing.district %} · {{ listing.district }}{% endif %}</div>
+          </td>
+          <td>{{ listing.rooms|num }}</td>
+          <td>{{ listing.area_sqm|num }} m²</td>
+          <td>{{ listing.warm_rent|eur }}</td>
+          <td>
+            {% for reason in listing.exclude_reasons %}
+            <span class="reason">{{ reason }}</span>
+            {% endfor %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </details>
+  {% endif %}
+
+  {% if agent_log %}
+  <h2 class="section-title">🤖 Agenten-Lauf</h2>
+  <table class="table">
+    <thead><tr><th>Agent</th><th>Dauer</th><th>Status</th></tr></thead>
+    <tbody>
+      {% for entry in agent_log %}
+      <tr>
+        <td>{{ entry.agent }}</td>
+        <td>{{ entry.duration_seconds }} s</td>
+        <td>
+          {% if entry.errors %}
+            <span class="reason reason--scam">{{ entry.errors|join('; ') }}</span>
+          {% else %}
+            ok
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <footer class="footer">
+    Wohnungssuche-Agent · täglicher Lauf · Es werden keinerlei Nachrichten ohne
+    deine ausdrückliche Freigabe verschickt. Bilder und Links führen direkt zu den
+    Original-Inseraten der Plattformen.
+  </footer>
+
+</div>
+
+<script>
+  // Expose images expire; degrade to a placeholder instead of a broken icon.
+  document.querySelectorAll('.card-image img').forEach(function (image) {
+    image.addEventListener('error', function () {
+      var box = image.parentElement;
+      box.classList.add('is-missing');
+      box.textContent = '📷 Bild nicht mehr verfügbar';
+    });
+  });
+</script>
+</body>
+</html>
