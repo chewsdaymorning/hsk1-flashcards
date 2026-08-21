@@ -1,0 +1,21 @@
+{
+  "city": "Wiesbaden",
+  "max_distance_km": 4.0,
+  "min_rooms": 3.0,
+  "min_area_sqm": 70.0,
+  "max_warm_rent_eur": 1600.0,
+  "excluded_districts": ["Erbenheim", "Mainz-Kastel", "Kastel"],
+  "wants_parking": true,
+  "tenant_description": "Paar, Nichtraucher, keine Haustiere",
+  "platforms": ["is24", "immowelt", "kleinanzeigen"],
+  "imap_host": "",
+  "imap_user": "",
+  "imap_password_env": "WOHNUNGSSUCHE_IMAP_PASSWORD",
+  "imap_since_days": 3,
+  "fredy_db_path": "",
+  "max_pages_per_platform": 3,
+  "fetch_details": true,
+  "max_detail_fetches": 15,
+  "request_delay_seconds": 4.0,
+  "respect_robots_txt": true
+}

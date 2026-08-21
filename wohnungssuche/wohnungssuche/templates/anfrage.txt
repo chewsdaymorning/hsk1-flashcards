@@ -1,0 +1,21 @@
+Betreff: Anfrage zur Wohnung: {{ listing.title }}
+
+Guten Tag{% if listing.contact_name %} {{ listing.contact_name }}{% endif %},
+
+wir interessieren uns für Ihre Wohnung "{{ listing.title }}"{% if listing.address %} in {{ listing.address }}{% endif %}
+({{ listing.rooms|num }} Zimmer, {{ listing.area_sqm|num }} m², {{ listing.warm_rent|eur }} warm).
+
+Zu uns: {{ config.tenant_description }}. Wir haben ein festes, ungekündigtes
+Arbeitsverhältnis und können Gehaltsnachweise, eine SCHUFA-Auskunft sowie eine
+Mietschuldenfreiheitsbescheinigung vorlegen.
+
+Über einen Besichtigungstermin würden wir uns sehr freuen – gerne auch kurzfristig
+oder am Wochenende.
+
+Vielen Dank und freundliche Grüße
+
+
+---
+Quelle: {{ listing.url }}
+Dieser Text ist ein Entwurf. Er wurde NICHT verschickt – bitte selbst prüfen,
+persönlich anpassen und über die Plattform senden.

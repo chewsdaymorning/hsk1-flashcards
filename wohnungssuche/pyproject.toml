@@ -1,0 +1,24 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wohnungssuche-wiesbaden"
+version = "2.0.0"
+description = "Agent-based apartment search for Wiesbaden with scam detection and a manual approval queue"
+readme = "README.md"
+requires-python = ">=3.11"
+dependencies = [
+    "beautifulsoup4>=4.12",
+    "Jinja2>=3.1",
+    "requests>=2.31",
+]
+
+[project.scripts]
+wohnungssuche = "wohnungssuche.main:main"
+
+[tool.setuptools.packages.find]
+include = ["wohnungssuche*"]
+
+[tool.setuptools.package-data]
+wohnungssuche = ["templates/*", "static/*", "fixtures/*"]
