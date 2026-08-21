@@ -216,6 +216,38 @@ class ImapMailbox(Mailbox):
         return sorted(ids, key=int)
 
 
+# Alert mails print the location as "Strasse 12, 65185 Wiesbaden" or just
+# "65187 Wiesbaden"; sometimes only "Wiesbaden-Mitte" appears in the title.
+# Without it the distance and district criteria cannot be applied at all.
+_STREET = r"[A-ZÄÖÜ][\w.\-äöüß]{2,40}?\s*\d{1,4}\s*[a-zA-Z]?"
+_ADDRESS_RE = re.compile(
+    rf"(?:(?P<street>{_STREET})\s*,\s*)?"
+    r"(?P<zip>\d{5})\s+(?P<city>[A-ZÄÖÜ][\wäöüß]+(?:-[A-ZÄÖÜ][\wäöüß]+)?)"
+)
+_CITY_DISTRICT_RE = re.compile(
+    r"\b(?P<city>Wiesbaden)-(?P<district>[A-ZÄÖÜ][\wäöüß]+)"
+)
+
+
+def extract_address(text: str) -> str:
+    """Pull a postal address out of an alert-mail listing block.
+
+    Returns "" when the mail names no location - the caller must not invent
+    one, since an unknown distance is reported as such downstream.
+    """
+    if not text:
+        return ""
+    match = _ADDRESS_RE.search(text)
+    if match:
+        street = clean_text(match.group("street") or "")
+        location = f"{match.group('zip')} {match.group('city')}"
+        return f"{street}, {location}" if street else location
+    district = _CITY_DISTRICT_RE.search(text)
+    if district:
+        return f"{district.group('city')}-{district.group('district')}"
+    return ""
+
+
 @dataclass
 class EmailAlertScraper(BaseScraper):
     """Extracts listings from Suchagent alert e-mails.
@@ -312,6 +344,7 @@ class EmailAlertScraper(BaseScraper):
             url=url,
             title=title,
             description=text,
+            address=extract_address(f"{text} {title}"),
             rooms=rooms,
             area_sqm=area,
             cold_rent=cold_rent,

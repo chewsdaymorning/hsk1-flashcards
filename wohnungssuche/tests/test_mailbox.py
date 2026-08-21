@@ -136,3 +136,50 @@ class TestImapSinceCriterion(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestAddressExtraction(unittest.TestCase):
+    """Without an address the 4 km radius cannot be applied to mail listings."""
+
+    def test_street_with_postcode(self):
+        from wohnungssuche.sources import extract_address
+
+        self.assertEqual(
+            extract_address("3 Zimmer · 84 m² · Bertramstraße 12, 65185 Wiesbaden"),
+            "Bertramstraße 12, 65185 Wiesbaden",
+        )
+
+    def test_postcode_only(self):
+        from wohnungssuche.sources import extract_address
+
+        self.assertEqual(
+            extract_address("Warmmiete: 1.450 € 65187 Wiesbaden"), "65187 Wiesbaden"
+        )
+
+    def test_city_district_fallback(self):
+        from wohnungssuche.sources import extract_address
+
+        self.assertEqual(
+            extract_address("Helle Wohnung in Wiesbaden-Mitte"), "Wiesbaden-Mitte"
+        )
+
+    def test_no_location_invents_nothing(self):
+        from wohnungssuche.sources import extract_address
+
+        self.assertEqual(extract_address("3 Zimmer · 84 m² · 1.390 €"), "")
+        self.assertEqual(extract_address(""), "")
+
+    def test_listings_from_fixtures_carry_addresses(self):
+        from wohnungssuche.sources import EmailAlertScraper, FileMailbox
+
+        scraper = EmailAlertScraper(
+            config=config(), fetcher=None, mailbox=FileMailbox(EMAIL_FIXTURES)
+        )
+        addresses = {listing.id: listing.address for listing in scraper.search()}
+        self.assertEqual(
+            addresses["is24-160000101"], "Bertramstraße 12, 65185 Wiesbaden"
+        )
+        self.assertEqual(
+            addresses["is24-160000102"], "Adolfsallee 8, 65185 Wiesbaden"
+        )
+        self.assertTrue(all(address for address in addresses.values()))

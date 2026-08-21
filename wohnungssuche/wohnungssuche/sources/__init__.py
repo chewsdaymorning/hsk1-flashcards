@@ -13,6 +13,7 @@ from wohnungssuche.sources.mailbox import (
     FileMailbox,
     ImapMailbox,
     Mailbox,
+    extract_address,
 )
 
 __all__ = [
@@ -21,4 +22,5 @@ __all__ = [
     "FileMailbox",
     "ImapMailbox",
     "Mailbox",
+    "extract_address",
 ]
