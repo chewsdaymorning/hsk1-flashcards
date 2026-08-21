@@ -1,0 +1,55 @@
+From: immowelt <suchagent@immowelt.de>
+To: wohnungssuche@example.com
+Subject: Ihr Suchagent: 1 neues Angebot =?utf-8?q?f=C3=BCr?= Wiesbaden
+Date: Thu, 20 Aug 2026 07:05:00 +0200
+Message-ID: <searchagent-20260820-x9y8z7@mailing.immowelt.de>
+X-Demo: synthetic fixture
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============2696815680242784235=="
+
+--===============2696815680242784235==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Hallo,
+
+Ihr Suchagent =E2=80=9EWiesbaden, 3 Zimmer=E2=80=9C hat 1 neues Angebot gefun=
+den:
+
+* Charmante 3-Zimmer-Wohnung im Dichterviertel
+  3 Zimmer, 78 m=C2=B2, Warmmiete: 1.450 =E2=82=AC
+  https://www.immowelt.de/expose/2ab34cd
+
+Viele Gr=C3=BC=C3=9Fe
+Ihr immowelt-Team
+
+--===============2696815680242784235==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html>
+  <body style=3D"font-family: Helvetica, Arial, sans-serif;">
+    <p>Hallo,</p>
+    <p>Ihr Suchagent <b>=E2=80=9EWiesbaden, 3 Zimmer=E2=80=9C</b> hat 1 neues=
+ Angebot gefunden:</p>
+    <table class=3D"estate" width=3D"600" cellpadding=3D"4">
+      <tr>
+        <td>
+          <a href=3D"https://www.immowelt.de/expose/2ab34cd?utm_source=3Dmail=
+ing&amp;utm_medium=3Demail&amp;utm_campaign=3Dsearchagent">Charmante 3-Zimmer=
+-Wohnung im Dichterviertel</a>
+        </td>
+      </tr>
+      <tr><td>3 Zimmer &#183; 78 m=C2=B2 &#183; Warmmiete: 1.450 =E2=82=AC</t=
+d></tr>
+      <tr><td>65187 Wiesbaden</td></tr>
+    </table>
+    <p><a href=3D"https://www.immowelt.de/meinkonto/suchagenten">Suchagent be=
+arbeiten</a></p>
+    <p>Viele Gr=C3=BC=C3=9Fe<br>Ihr immowelt-Team</p>
+  </body>
+</html>
+
+--===============2696815680242784235==--

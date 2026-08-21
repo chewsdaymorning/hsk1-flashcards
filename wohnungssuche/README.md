@@ -86,6 +86,42 @@ self-contained apart from `reports/static/style.css`, which is copied next to it
   User-Agent, exponential backoff (2/4/8 s), a page cap per portal and a cap on
   expose detail fetches.
 
+## Discovery sources
+
+Scraping the portals directly is fragile: IS24 sits behind active bot
+protection and robots.txt disallows the search paths (which this tool honours
+rather than evades). Two scraping-free sources fix that:
+
+- **`email`** - the portals' own Suchagent alert mails, read via IMAP. Save a
+  search on [IS24](https://www.immobilienscout24.de/suchende.html),
+  [Immowelt](https://www.immowelt.de/suchauftrag/anlegen) and Kleinanzeigen,
+  let them mail every new listing, and configure:
+
+  ```json
+  { "platforms": ["email"],
+    "imap_host": "imap.gmail.com", "imap_user": "you@example.com" }
+  ```
+
+  The password is read from the environment variable named by
+  `imap_password_env` (default `WOHNUNGSSUCHE_IMAP_PASSWORD`) - it is never
+  stored in a file. Listings get their real portal (`is24`/`immowelt`/
+  `kleinanzeigen`) so cross-source de-duplication just works.
+
+- **`fredy`** - imports from a local [Fredy](https://github.com/orangecoding/fredy)
+  installation, which watches 17 German portals (including IS24 via their
+  mobile API) and stores everything in `db/listings.db`. Point
+  `fredy_db_path` at that file; it is opened strictly read-only (SQLite WAL
+  allows this while Fredy runs). Fredy stores one price per listing (usually
+  the Kaltmiete), so warm rents from this source are estimates and marked as
+  such.
+
+  ```json
+  { "platforms": ["fredy"], "fredy_db_path": "/opt/fredy/db/listings.db" }
+  ```
+
+Sources and portal scrapers mix freely: `--platforms is24 email fredy`. Both
+sources feed the identical validation → filter → link-check → report pipeline.
+
 ## Architecture
 
 ```
@@ -116,6 +152,7 @@ wohnungssuche/
 ├── reporting.py      Jinja2 rendering
 ├── main.py           CLI
 ├── scrapers/         base + card parser + is24/immowelt/kleinanzeigen + mock
+├── sources/          scraping-free discovery: Suchagent mails (IMAP), Fredy DB
 ├── templates/        report.html, anfrage.txt
 ├── static/style.css  all styling, never inlined in Python
 └── fixtures/         saved-shape HTML used by the mock scraper and the tests
@@ -134,7 +171,7 @@ parallel fake one, and switching to live data changes nothing but the fetcher.
 python -m unittest discover -s tests -t . -v
 ```
 
-98 tests, no network required: parsing, geo, filters, scam detection, storage,
+126 tests, no network required: parsing, geo, filters, scam detection, storage,
 report rendering (including HTML escaping and the "no fake links" guarantee)
 and a full pipeline run including a deliberately broken portal.
 

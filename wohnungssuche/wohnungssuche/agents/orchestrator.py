@@ -9,6 +9,7 @@ logged and skipped rather than aborting the run.
 from __future__ import annotations
 
 import logging
+import os
 from dataclasses import dataclass, field
 from datetime import datetime
 from pathlib import Path
@@ -37,6 +38,7 @@ from wohnungssuche.scrapers.is24 import IS24Scraper
 from wohnungssuche.scrapers.immowelt import ImmoweltScraper
 from wohnungssuche.scrapers.kleinanzeigen import KleinanzeigenScraper
 from wohnungssuche.scrapers.mock import MockScraper
+from wohnungssuche.sources import EmailAlertScraper, FileMailbox, FredyScraper, ImapMailbox
 from wohnungssuche.storage import Storage
 
 LOGGER = logging.getLogger(__name__)
@@ -47,16 +49,63 @@ SCRAPER_CLASSES = {
     "kleinanzeigen": KleinanzeigenScraper,
 }
 
+EMAIL_FIXTURES_DIR = Path(__file__).resolve().parent.parent / "fixtures" / "emails"
+
+
+def _build_email_source(config: SearchConfig, fetcher, use_mock: bool):
+    """Suchagent alert mails: fixtures in mock mode, IMAP live."""
+    if use_mock:
+        mailbox = FileMailbox(EMAIL_FIXTURES_DIR)
+    else:
+        if not (config.imap_host and config.imap_user):
+            LOGGER.warning(
+                "email source skipped: imap_host/imap_user not configured"
+            )
+            return None
+        password = os.environ.get(config.imap_password_env, "")
+        if not password:
+            LOGGER.warning(
+                "email source skipped: environment variable %s is empty "
+                "(it must hold the IMAP password)",
+                config.imap_password_env,
+            )
+            return None
+        mailbox = ImapMailbox(
+            host=config.imap_host,
+            user=config.imap_user,
+            password=password,
+            port=config.imap_port,
+            folder=config.imap_folder,
+            since_days=config.imap_since_days,
+            sender_filters=config.imap_sender_filters,
+        )
+    # The live fetcher stays attached so detail fetches and the link check
+    # work on the real portal URLs the mails point to.
+    return EmailAlertScraper(config=config, fetcher=fetcher, mailbox=mailbox)
+
 
 def build_scrapers(config: SearchConfig, use_mock: bool = False) -> Dict[str, BaseScraper]:
-    """Create one scraper per configured platform.
+    """Create one scraper/source per configured platform.
 
-    ``use_mock`` swaps the live HTTP transport for local fixtures; the parsers
-    are identical either way.
+    ``use_mock`` swaps the live transports for local fixtures; the parsers
+    are identical either way.  Besides the portal scrapers there are two
+    scraping-free sources: "email" (Suchagent alert mails) and "fredy"
+    (a local Fredy installation's listings database).
     """
     scrapers: Dict[str, BaseScraper] = {}
     fetcher = None if use_mock else HttpFetcher(config)
     for platform in config.platforms:
+        if platform == "email":
+            source = _build_email_source(config, fetcher, use_mock)
+            if source is not None:
+                scrapers["email"] = source
+            continue
+        if platform == "fredy":
+            if use_mock:
+                LOGGER.warning("fredy source has no fixtures; skipped in --mock")
+                continue
+            scrapers["fredy"] = FredyScraper(config=config, fetcher=fetcher)
+            continue
         if platform not in SCRAPER_CLASSES:
             LOGGER.warning("Unknown platform %r, skipped", platform)
             continue

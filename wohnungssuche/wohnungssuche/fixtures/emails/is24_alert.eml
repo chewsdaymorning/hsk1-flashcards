@@ -1,0 +1,74 @@
+From: ImmobilienScout24 Suchagent <no-reply@immobilienscout24.de>
+To: wohnungssuche@example.com
+Subject: Suchagent: 2 neue Wohnungen =?utf-8?q?f=C3=BCr?= Ihre Suche in
+ Wiesbaden
+Date: Thu, 20 Aug 2026 06:15:00 +0200
+Message-ID: <suchagent-20260820-a1b2c3@mail.immobilienscout24.de>
+X-Demo: synthetic fixture
+MIME-Version: 1.0
+Content-Type: multipart/alternative;
+ boundary="===============4537343139596025618=="
+
+--===============4537343139596025618==
+Content-Type: text/plain; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+
+Guten Tag,
+
+f=C3=BCr Ihren Suchauftrag "3-Zimmer-Wohnung in Wiesbaden" gibt es 2 neue Ang=
+ebote:
+
+* Helle 3-Zimmer-Wohnung mit Balkon in Wiesbaden-Mitte
+  3 Zimmer, 84 m=C2=B2, Kaltmiete: 1.390 =E2=82=AC
+  https://www.immobilienscout24.de/expose/160000101
+
+* Gro=C3=9Fz=C3=BCgige 4-Zimmer-Wohnung mit Einbauk=C3=BCche
+  4 Zimmer, 102 m=C2=B2, Kaltmiete: 1.550 =E2=82=AC, Warmmiete: 1.890 =E2=82=
+=AC
+  https://www.immobilienscout24.de/expose/160000102
+
+Viele Gr=C3=BC=C3=9Fe
+Ihr ImmobilienScout24-Team
+
+--===============4537343139596025618==
+Content-Type: text/html; charset="utf-8"
+Content-Transfer-Encoding: quoted-printable
+MIME-Version: 1.0
+
+<html>
+  <body style=3D"font-family: Arial, sans-serif;">
+    <p>Guten Tag,</p>
+    <p>f=C3=BCr Ihren Suchauftrag <b>=E2=80=9E3-Zimmer-Wohnung in Wiesbaden=
+=E2=80=9C</b> gibt es 2 neue Angebote:</p>
+    <table class=3D"listing" width=3D"600" cellpadding=3D"4">
+      <tr>
+        <td>
+          <a href=3D"https://www.immobilienscout24.de/expose/160000101?utm_so=
+urce=3Demail&amp;utm_medium=3Dalert&amp;utm_campaign=3Dsuchagent">Helle 3-Zim=
+mer-Wohnung mit Balkon in Wiesbaden-Mitte</a>
+        </td>
+      </tr>
+      <tr><td>3 Zimmer &#183; 84 m=C2=B2 &#183; Kaltmiete: 1.390 =E2=82=AC</t=
+d></tr>
+      <tr><td>Bertramstra=C3=9Fe 12, 65185 Wiesbaden</td></tr>
+    </table>
+    <table class=3D"listing" width=3D"600" cellpadding=3D"4">
+      <tr>
+        <td>
+          <a href=3D"https://links.immobilienscout24.de/r?url=3Dhttps%3A%2F%2=
+Fwww.immobilienscout24.de%2Fexpose%2F160000102%3Futm_source%3Demail%26utm_med=
+ium%3Dalert&amp;sig=3Ddemo123">Gro=C3=9Fz=C3=BCgige 4-Zimmer-Wohnung mit Einb=
+auk=C3=BCche</a>
+        </td>
+      </tr>
+      <tr><td>4 Zimmer &#183; 102 m=C2=B2 &#183; Kaltmiete: 1.550 =E2=82=AC &=
+#183; Warmmiete: 1.890 =E2=82=AC</td></tr>
+      <tr><td>Adolfsallee 8, 65185 Wiesbaden</td></tr>
+    </table>
+    <p><a href=3D"https://www.immobilienscout24.de/meinkonto/suchauftraege">S=
+uchauftrag verwalten</a></p>
+    <p>Viele Gr=C3=BC=C3=9Fe<br>Ihr ImmobilienScout24-Team</p>
+  </body>
+</html>
+
+--===============4537343139596025618==--
