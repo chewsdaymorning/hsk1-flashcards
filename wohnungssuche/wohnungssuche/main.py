@@ -79,6 +79,12 @@ def command_run(args: argparse.Namespace) -> int:
             print(f"  - {error}")
     if result.report_path:
         print(f"\nReport: {result.report_path}")
+    if args.mock:
+        print(
+            "\nDEMO-MODUS: Daten stammen aus lokalen Fixtures - alle Links und"
+            "\nBilder sind synthetisch und fuehren ins Leere. Fuer echte Inserate"
+            "\nohne --mock laufen lassen."
+        )
     print(
         f"\n{len(result.matches)} Treffer warten in der Approval-Queue "
         f"(`queue`). Es wurde nichts verschickt."

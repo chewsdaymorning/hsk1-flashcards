@@ -154,6 +154,13 @@ body {
 .badge--good { background: #ecfdf3; border-color: #a6f4c5; color: var(--good); }
 .badge--new { background: #eff8ff; border-color: #b2ddff; color: var(--accent); }
 .badge--platform { text-transform: uppercase; letter-spacing: .03em; font-weight: 600; }
+.badge--dead { background: var(--danger-bg); border-color: #fecdca; color: var(--danger); }
+
+.notice--demo {
+  background: #eff8ff;
+  border-color: #b2ddff;
+  border-left-color: var(--accent);
+}
 
 .notes { margin: .9rem 0 0; padding-left: 1.1rem; color: var(--ink-muted); font-size: .88rem; }
 .reasons { list-style: none; margin: .75rem 0 0; padding: 0; display: flex; flex-wrap: wrap; gap: .4rem; }

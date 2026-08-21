@@ -111,6 +111,11 @@ class ApartmentListing:
     # contact meaningful (search-result cards never carry one).
     details_fetched: bool = False
 
+    # Outcome of the optional liveness check on the expose URL:
+    # "ok" (reachable), "dead" (404/410 - listing likely taken down),
+    # "unchecked" (check disabled, capped, or inconclusive e.g. bot-blocked).
+    link_status: str = "unchecked"
+
     is_scam_flagged: bool = False
     scam_reasons: List[str] = field(default_factory=list)
     matches_criteria: bool = False

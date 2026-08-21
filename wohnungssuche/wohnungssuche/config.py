@@ -88,6 +88,10 @@ class SearchConfig:
     # what makes scam detection and contact extraction possible.
     fetch_details: bool = True
     max_detail_fetches: int = 15
+    # HEAD-check the expose URL of every match before reporting, so a listing
+    # that was taken down between scrape and click is flagged, not clicked.
+    verify_links: bool = True
+    max_link_checks: int = 30
 
     # --- Politeness -------------------------------------------------------
     request_delay_seconds: float = 4.0

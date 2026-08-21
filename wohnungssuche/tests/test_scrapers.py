@@ -144,6 +144,52 @@ class TestDiscoveryResilience(unittest.TestCase):
         self.assertEqual(len(pages), 2)
 
 
+class TestHttpFetcherVerify(unittest.TestCase):
+    """Status-code mapping of the liveness check, no network involved."""
+
+    class FakeResponse:
+        def __init__(self, status_code):
+            self.status_code = status_code
+
+        def close(self):
+            pass
+
+    def build_fetcher(self, status_code):
+        from wohnungssuche.scrapers.base import HttpFetcher
+
+        fetcher = HttpFetcher.__new__(HttpFetcher)  # skip network-y __init__
+        fetcher.config = config(respect_robots_txt=False, request_delay_seconds=0)
+        fetcher._last_request_at = 0.0
+
+        outer = self
+
+        class FakeSession:
+            def head(self, url, timeout=None, allow_redirects=True):
+                return outer.FakeResponse(status_code)
+
+            def get(self, url, timeout=None, stream=False):  # 405 fallback
+                return outer.FakeResponse(200)
+
+        fetcher.session = FakeSession()
+        fetcher.robots = None  # unused with respect_robots_txt=False
+        return fetcher
+
+    def test_mapping(self):
+        cases = {200: True, 301: True, 404: False, 410: False,
+                 403: None, 429: None, 500: None}
+        for status, expected in cases.items():
+            fetcher = self.build_fetcher(status)
+            self.assertEqual(
+                fetcher.verify("https://www.immobilienscout24.de/expose/1"),
+                expected,
+                f"HTTP {status}",
+            )
+
+    def test_head_not_allowed_falls_back_to_get(self):
+        fetcher = self.build_fetcher(405)
+        self.assertTrue(fetcher.verify("https://www.immowelt.de/expose/x"))
+
+
 class TestRobotsPolicy(unittest.TestCase):
     def test_unreachable_robots_means_no_crawling(self):
         policy = RobotsPolicy("test-agent")

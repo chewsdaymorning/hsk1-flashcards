@@ -43,7 +43,7 @@ class TestPipeline(unittest.TestCase):
 
     def test_run_completes_without_errors(self):
         self.assertEqual(self.result.errors, [])
-        self.assertEqual(len(self.result.agent_log), 6)
+        self.assertEqual(len(self.result.agent_log), 7)
         self.assertTrue(all(not entry["errors"] for entry in self.result.agent_log))
 
     def test_all_platforms_contributed(self):
@@ -133,6 +133,119 @@ class TestPartialFailure(unittest.TestCase):
         self.assertFalse(statuses["kaputt"])
         self.assertTrue(result.matches)  # the healthy platform still delivered
         self.assertTrue(Path(result.report_path).exists())
+
+
+class TestDemoModeIsLabelled(unittest.TestCase):
+    """A --mock report must say loudly that its links are synthetic."""
+
+    def test_mock_report_carries_demo_banner_and_flag(self):
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        result = Orchestrator(
+            config=config(fetch_details=False),
+            storage=None,
+            output_dir=Path(tmp.name),
+            use_mock=True,
+        ).run()
+        html = Path(result.report_path).read_text(encoding="utf-8")
+        self.assertIn("Demo-Daten", html)
+        self.assertIn("nicht existierenden Inseraten", html)
+        payload = json.loads(Path(result.json_path).read_text(encoding="utf-8"))
+        self.assertTrue(payload["demo"])
+        # No link checker runs in demo mode, so nothing may claim "ok".
+        for listing in result.matches:
+            self.assertEqual(listing.link_status, "unchecked")
+
+    def test_live_report_has_no_demo_banner(self):
+        from wohnungssuche.reporting import ReportGenerator
+        from tests.helpers import make_listing
+
+        tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(tmp.cleanup)
+        generator = ReportGenerator(config(), Path(tmp.name))
+        html_path, json_path = generator.generate(
+            matches=[make_listing()], non_matches=[], flagged=[], demo_mode=False
+        )
+        self.assertNotIn("Demo-Daten", html_path.read_text(encoding="utf-8"))
+        self.assertFalse(json.loads(json_path.read_text(encoding="utf-8"))["demo"])
+
+
+class TestLinkCheckAgent(unittest.TestCase):
+    class StubFetcher:
+        """verify() answers from a fixed table; get() is never used here."""
+
+        def __init__(self, verdicts):
+            self.verdicts = verdicts
+            self.checked = []
+
+        def get(self, url, params=None):  # pragma: no cover - not used
+            raise AssertionError("LinkCheckAgent must not GET")
+
+        def verify(self, url):
+            self.checked.append(url)
+            return self.verdicts.get(url)
+
+    def run_agent(self, matches, fetcher, **config_overrides):
+        from wohnungssuche.agents import LinkCheckAgent
+        from wohnungssuche.models import AgentMessage
+
+        agent = LinkCheckAgent(config=config(**config_overrides), fetcher=fetcher)
+        message = AgentMessage(
+            sender="FilterAgent",
+            recipient="LinkCheckAgent",
+            payload={"matches": matches, "warnings": {}},
+        )
+        return agent.run(message)
+
+    def test_statuses_and_dead_warning(self):
+        from tests.helpers import make_listing
+
+        alive = make_listing(id="alive")
+        gone = make_listing(id="gone", title="Andere Wohnung")
+        unknown = make_listing(id="unknown", title="Dritte Wohnung")
+        fetcher = self.StubFetcher(
+            {alive.url: True, gone.url: False, unknown.url: None}
+        )
+        # Same URL for all three (helpers share one) would collide; give each its own.
+        gone.url = "https://www.immobilienscout24.de/expose/222"
+        unknown.url = "https://www.immobilienscout24.de/expose/333"
+        fetcher.verdicts = {alive.url: True, gone.url: False, unknown.url: None}
+
+        message = self.run_agent([alive, gone, unknown], fetcher)
+        self.assertTrue(message.ok)
+        self.assertEqual(alive.link_status, "ok")
+        self.assertEqual(gone.link_status, "dead")
+        self.assertEqual(unknown.link_status, "unchecked")
+        self.assertIn(
+            "Inserat nicht mehr erreichbar (evtl. schon vergeben)",
+            message.payload["warnings"][gone.unique_hash],
+        )
+
+    def test_disabled_or_missing_fetcher_checks_nothing(self):
+        from tests.helpers import make_listing
+
+        listing = make_listing()
+        fetcher = self.StubFetcher({listing.url: False})
+        self.run_agent([listing], fetcher, verify_links=False)
+        self.assertEqual(fetcher.checked, [])
+        self.assertEqual(listing.link_status, "unchecked")
+
+        self.run_agent([listing], None)
+        self.assertEqual(listing.link_status, "unchecked")
+
+    def test_budget_caps_requests(self):
+        from tests.helpers import make_listing
+
+        listings = []
+        verdicts = {}
+        for index in range(5):
+            item = make_listing(id=f"l{index}", title=f"Wohnung {index}")
+            item.url = f"https://www.immobilienscout24.de/expose/9{index}"
+            verdicts[item.url] = True
+            listings.append(item)
+        fetcher = self.StubFetcher(verdicts)
+        self.run_agent(listings, fetcher, max_link_checks=2)
+        self.assertEqual(len(fetcher.checked), 2)
 
 
 class TestNoAutomaticContact(unittest.TestCase):

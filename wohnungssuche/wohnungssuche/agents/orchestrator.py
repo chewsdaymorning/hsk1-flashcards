@@ -20,6 +20,7 @@ from wohnungssuche.agents.specialists import (
     EnrichmentAgent,
     ExtractionAgent,
     FilterAgent,
+    LinkCheckAgent,
     ReportingAgent,
     ValidationAgent,
 )
@@ -31,7 +32,7 @@ from wohnungssuche.models import (
     ApprovalStatus,
     PlatformStatus,
 )
-from wohnungssuche.scrapers.base import BaseScraper, HttpFetcher
+from wohnungssuche.scrapers.base import BaseScraper, Fetcher, HttpFetcher
 from wohnungssuche.scrapers.is24 import IS24Scraper
 from wohnungssuche.scrapers.immowelt import ImmoweltScraper
 from wohnungssuche.scrapers.kleinanzeigen import KleinanzeigenScraper
@@ -104,7 +105,16 @@ class Orchestrator:
         self.config = config
         self.storage = storage
         self.output_dir = Path(output_dir)
+        self.demo_mode = use_mock
         self.scrapers = scrapers if scrapers is not None else build_scrapers(config, use_mock)
+        # Only a live transport can answer "is this URL still up?"; in demo
+        # mode the checker stays off and the report says so instead.
+        link_fetcher: Optional[Fetcher] = None
+        if not use_mock:
+            for scraper in self.scrapers.values():
+                if isinstance(scraper.fetcher, HttpFetcher):
+                    link_fetcher = scraper.fetcher
+                    break
         self.geocoder = geocoder or Geocoder(
             cache_path=self.output_dir / ".geocache.json", allow_network=not use_mock
         )
@@ -114,6 +124,7 @@ class Orchestrator:
             ValidationAgent(config=config),
             EnrichmentAgent(config=config, geocoder=self.geocoder, scrapers=self.scrapers),
             FilterAgent(config=config),
+            LinkCheckAgent(config=config, fetcher=link_fetcher),
             ReportingAgent(config=config, output_dir=self.output_dir),
         )
 
@@ -126,6 +137,7 @@ class Orchestrator:
                 # Persist first so the report can mark what is new.
                 message.payload["new_hashes"] = self._persist(message.payload)
                 message.payload["agent_log"] = list(result.agent_log)
+                message.payload["demo_mode"] = self.demo_mode
 
             message = agent.run(message)
             result.agent_log.append(

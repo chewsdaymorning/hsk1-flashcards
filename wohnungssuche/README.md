@@ -95,6 +95,7 @@ Orchestrator                     state, persistence, approval queue
   ├── ValidationAgent   → scam indicators + plausibility
   ├── EnrichmentAgent   → expose details, district, coordinates, distance
   ├── FilterAgent       → hard criteria, records why anything was dropped
+  ├── LinkCheckAgent    → HEAD-checks match URLs, flags offline exposes
   └── ReportingAgent    → Jinja2 HTML report + JSON snapshot
 ```
 
@@ -155,9 +156,15 @@ Subclass `ResultCardScraper`, declare selectors and query parameters (see
 - Portal markup changes regularly. Selectors are layered (specific → generic →
   "any link to an expose"), but a redesign will eventually need new selectors;
   the fixtures make that a small, testable change.
-- The bundled fixtures are hand-written in the shape of real result pages. The
-  IDs and image paths in them are synthetic, so those images do not load - the
-  report degrades to a placeholder, which is exactly the fallback path.
+- **`--mock` produces demo data.** The bundled fixtures are hand-written in
+  the shape of real result pages, but their listing IDs, links and image paths
+  are synthetic - the links 404 on purpose. Demo reports carry a banner saying
+  exactly that, the JSON snapshot has `"demo": true`, and the CLI prints a
+  warning. Only a run **without** `--mock` produces clickable real listings.
+- In live runs the LinkCheckAgent HEAD-checks every match before reporting:
+  reachable exposes get a "Link geprüft" badge, 404/410 gets "Inserat
+  offline?" plus a warning (listings are often taken down within hours), and
+  an inconclusive answer (bot protection, robots.txt) claims nothing.
 - Warm rent is estimated (cold rent × 1.25) when a listing publishes only the
   cold rent. Such listings are marked "geschätzt" in the report and in the
   criteria check.

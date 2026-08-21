@@ -12,7 +12,7 @@ from wohnungssuche.filters import FilterEngine
 from wohnungssuche.geo import Geocoder, detect_district, haversine_km
 from wohnungssuche.models import AgentMessage, ApartmentListing, PlatformStatus
 from wohnungssuche.reporting import ReportGenerator
-from wohnungssuche.scrapers.base import BaseScraper
+from wohnungssuche.scrapers.base import BaseScraper, Fetcher
 from wohnungssuche.validation import ScamDetector
 
 LOGGER = logging.getLogger(__name__)
@@ -186,6 +186,50 @@ class FilterAgent(BaseAgent):
 
 
 @dataclass
+class LinkCheckAgent(BaseAgent):
+    """Verifies that each match's expose URL is still reachable.
+
+    A listing taken offline between scrape and report is the most common way a
+    "real" link goes dead.  Dead matches stay visible but carry a warning; an
+    inconclusive check (bot protection, robots.txt) claims nothing.
+    """
+
+    name: str = "LinkCheckAgent"
+    fetcher: Optional[Fetcher] = None
+
+    def execute(self, message: AgentMessage) -> Dict[str, Any]:
+        payload = dict(message.payload)
+        matches: List[ApartmentListing] = payload.get("matches", [])
+        warnings: Dict[str, List[str]] = payload.get("warnings", {})
+
+        if self.fetcher is None or not self.config.verify_links:
+            return payload
+
+        budget = self.config.max_link_checks
+        dead = 0
+        for listing in matches:
+            if budget <= 0:
+                LOGGER.info("link-check budget spent; remaining matches unchecked")
+                break
+            budget -= 1
+            verdict = self.fetcher.verify(listing.url)
+            if verdict is True:
+                listing.link_status = "ok"
+            elif verdict is False:
+                listing.link_status = "dead"
+                dead += 1
+                warnings.setdefault(listing.unique_hash, []).append(
+                    "Inserat nicht mehr erreichbar (evtl. schon vergeben)"
+                )
+            # None -> stays "unchecked"; we make no claim we cannot back up.
+
+        if dead:
+            LOGGER.info("%s match(es) point to offline exposes", dead)
+        payload["warnings"] = warnings
+        return payload
+
+
+@dataclass
 class ReportingAgent(BaseAgent):
     """Renders the HTML report and the JSON snapshot."""
 
@@ -207,6 +251,7 @@ class ReportingAgent(BaseAgent):
             warnings=payload.get("warnings", {}),
             new_hashes=payload.get("new_hashes", set()),
             agent_log=payload.get("agent_log", []),
+            demo_mode=payload.get("demo_mode", False),
         )
         payload["report_path"] = str(report_path)
         payload["json_path"] = str(json_path)

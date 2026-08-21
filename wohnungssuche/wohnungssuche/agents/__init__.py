@@ -7,6 +7,7 @@ from wohnungssuche.agents.specialists import (
     EnrichmentAgent,
     ExtractionAgent,
     FilterAgent,
+    LinkCheckAgent,
     ReportingAgent,
     ValidationAgent,
 )
@@ -17,6 +18,7 @@ __all__ = [
     "EnrichmentAgent",
     "ExtractionAgent",
     "FilterAgent",
+    "LinkCheckAgent",
     "Orchestrator",
     "PipelineResult",
     "ReportingAgent",

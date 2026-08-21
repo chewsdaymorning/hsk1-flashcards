@@ -40,6 +40,14 @@
     </div>
   </section>
 
+  {% if demo_mode %}
+  <div class="notice notice--demo">
+    🧪 <strong>Demo-Daten.</strong> Dieser Report wurde aus lokalen Test-Fixtures erzeugt
+    (<code>run --mock</code>). Alle Inserate, Preise und Fotos sind synthetisch –
+    <strong>die Links führen zu nicht existierenden Inseraten</strong> und liefern 404.
+    Für echte Ergebnisse ohne <code>--mock</code> laufen lassen.
+  </div>
+  {% endif %}
   <div class="notice notice--important">
     ⚠️ <strong>Keine automatische Kontaktaufnahme.</strong>
     Dieses Tool verschickt nichts. Jede Anfrage schreibst du selbst, nachdem du sie
@@ -124,6 +132,8 @@
         {% if listing.has_garden %}<span class="badge">🌳 Garten</span>{% endif %}
         {% if listing.has_elevator %}<span class="badge">🛗 Aufzug</span>{% endif %}
         {% if listing.is_private %}<span class="badge">👤 Privatanbieter</span>{% endif %}
+        {% if listing.link_status == 'ok' %}<span class="badge badge--good">✓ Link geprüft</span>
+        {% elif listing.link_status == 'dead' %}<span class="badge badge--dead">⚠️ Inserat offline?</span>{% endif %}
         {% if listing.cold_rent %}<span class="badge">Kalt {{ listing.cold_rent|eur }}</span>{% endif %}
         {% if listing.deposit %}<span class="badge">Kaution {{ listing.deposit|eur }}</span>{% endif %}
       </div>

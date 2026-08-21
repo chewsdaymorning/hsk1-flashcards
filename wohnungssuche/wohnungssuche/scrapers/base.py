@@ -123,6 +123,14 @@ class Fetcher(ABC):
     def get(self, url: str, params: Optional[Dict[str, str]] = None) -> FetchResult:
         ...
 
+    def verify(self, url: str) -> Optional[bool]:
+        """Is *url* still reachable?  True/False, or None if inconclusive.
+
+        The default is deliberately None (unknown): only transports that can
+        really answer the question should claim anything.
+        """
+        return None
+
 
 class HttpFetcher(Fetcher):
     """Polite HTTP client: robots.txt, delays, rotating UA, backoff."""
@@ -184,6 +192,30 @@ class HttpFetcher(Fetcher):
                 time.sleep(2 ** attempt)  # exponential backoff: 2s, 4s, 8s
 
         return FetchResult(url=url, ok=False, error=last_error or "unknown error")
+
+    def verify(self, url: str) -> Optional[bool]:
+        if self.config.respect_robots_txt and not self.robots.can_fetch(url):
+            return None
+        self._wait(url)
+        self._last_request_at = time.monotonic()
+        try:
+            response = self.session.head(
+                url, timeout=self.config.request_timeout_seconds, allow_redirects=True
+            )
+            if response.status_code == 405:  # HEAD not supported
+                response = self.session.get(
+                    url, timeout=self.config.request_timeout_seconds, stream=True
+                )
+                response.close()
+        except requests.RequestException as exc:
+            LOGGER.warning("verify %s failed: %s", url, exc)
+            return None
+        if response.status_code in (404, 410):
+            return False
+        if response.status_code < 400:
+            return True
+        # 403/429/5xx: bot protection or a hiccup, not proof the listing died.
+        return None
 
 
 EMPTY_RESULTS_HTML = "<html><body><div class='no-results'></div></body></html>"

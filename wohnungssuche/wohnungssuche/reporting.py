@@ -67,6 +67,7 @@ class ReportGenerator:
         warnings: Dict[str, List[str]] = None,
         new_hashes: Iterable[str] = (),
         agent_log: Sequence[Dict] = (),
+        demo_mode: bool = False,
         timestamp: datetime = None,
     ) -> Tuple[Path, Path]:
         """Write ``<report>.html`` plus a JSON snapshot; return both paths."""
@@ -93,6 +94,7 @@ class ReportGenerator:
             warnings=warnings,
             new_hashes=new_hashes,
             agent_log=list(agent_log),
+            demo_mode=demo_mode,
             scam_labels=SCAM_LABELS,
         )
 
@@ -107,6 +109,7 @@ class ReportGenerator:
             json.dumps(
                 {
                     "generated_at": timestamp.isoformat(),
+                    "demo": demo_mode,
                     "criteria": {
                         "min_rooms": self.config.min_rooms,
                         "min_area_sqm": self.config.min_area_sqm,
